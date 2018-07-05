@@ -1,4 +1,4 @@
-package com.code.red.playvendas.utils.EscPosDriver.EscPosXmlParser;
+package com.redcode.escposxml.parser;
 
 public class Line {
 
@@ -14,55 +14,56 @@ public class Line {
 
     private String text;
 
-    public String getAlign(){
+    public String getAlign() {
         return this.align;
     }
 
-    public String getId(){
+    public String getId() {
         return this.id;
     }
 
-    public String getFont(){
+    public String getFont() {
         return this.font;
     }
 
-    public String getCut(){
+    public String getCut() {
         return this.cut;
     }
 
-    public Integer getFeed(){
+    public Integer getFeed() {
         return this.feed;
     }
 
-    public String getText(){
+    public String getText() {
         return this.text;
     }
 
-    public void setId(String id){
+    public void setId(String id) {
         this.id = id;
     }
 
-    public void setAlign(String align){
+    public void setAlign(String align) {
         this.align = align;
     }
 
-    public void setFont(String font){
+    public void setFont(String font) {
         this.font = font;
     }
 
-    public void setCut(String cut){
+    public void setCut(String cut) {
         this.cut = cut;
     }
 
-    public void setFeed(int feed){
+    public void setFeed(int feed) {
         this.feed = feed;
     }
-    public void setText(String text){
+
+    public void setText(String text) {
         this.text = text;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return this.id;
     }
 }

@@ -1,4 +1,4 @@
-package com.code.red.playvendas.utils.EscPosDriver.EscPosXmlParser;
+package com.redcode.escposxml.parser;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -6,7 +6,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
-public class LineConverter implements Converter{
+public class LineConverter implements Converter {
     public void marshal(Object value, HierarchicalStreamWriter writer,
                         MarshallingContext context) {
         Line line = (Line) value;
@@ -16,11 +16,11 @@ public class LineConverter implements Converter{
 
     public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
         Line line = new Line();
-        if(reader.hasMoreChildren()){
+        if (reader.hasMoreChildren()) {
             reader.moveDown();
             line.setText(reader.getValue());
             reader.moveUp();
-        }else{
+        } else {
             line.setText(null);
         }
         line.setId(reader.getAttribute("id"));

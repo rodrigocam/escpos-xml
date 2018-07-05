@@ -1,4 +1,4 @@
-package com.code.red.playvendas.utils.EscPosDriver.EscPosXmlParser;
+package com.redcode.escposxml.parser;
 
 import java.util.List;
 

@@ -1,4 +1,5 @@
-package com.code.red.playvendas.utils.EscPosDriver.EscPosXmlParser;
+package com.redcode.escposxml.parser;
+
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -9,16 +10,16 @@ public class Parser {
 
     private XStream xStream;
 
-    public Parser(){
+    public Parser() {
         this.xStream = new XStream(new DomDriver());
         setup();
     }
 
-    public Document unmarshall(InputStream xmlStream){
+    public Document unmarshall(InputStream xmlStream) {
         return (Document) xStream.fromXML(xmlStream);
     }
 
-    private void setup(){
+    private void setup() {
         this.xStream.alias("document", Document.class);
         this.xStream.alias("line", Line.class);
 
