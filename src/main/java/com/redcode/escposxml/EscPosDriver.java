@@ -1,61 +1,59 @@
 package com.redcode.escposxml;
  
-import com.redcode.escposxml.parser.Document;
-import com.redcode.escposxml.parser.Line;
-import com.redcode.escposxml.parser.Parser;
+import com.redcode.escposxml.pojo.Document;
+import com.redcode.escposxml.pojo.Line;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
+import static com.redcode.escposxml.utils.constants.Commands.*;
+import static com.redcode.escposxml.utils.constants.PrintMode.PRINT_MODE_MAP;
+import static com.redcode.escposxml.utils.constants.Alignments.ALIGN_MAP;
+import static com.redcode.escposxml.utils.constants.CutMode.CUT_MODE_MAP;
+import static com.redcode.escposxml.utils.constants.CharCodeTable.CHAR_CODE_TABLE_MAP;
+
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+
 public class EscPosDriver {
 
-    private ByteArrayOutputStream byteData;
-    private XStream xStream;
-    private Parser parser;
+    private final ByteArrayOutputStream byteData;
     private Document doc;
-    private List<Line> lines;
-    private InputStream xmlFile;
+    private InputStream template;
 
-    public EscPosDriver(InputStream xmlFile) {
+    public EscPosDriver() {
         this.byteData = new ByteArrayOutputStream();
-        this.xStream = new XStream();
-        this.parser = new Parser();
-        this.xmlFile = xmlFile;
-
-        this.doc = this.parser.unmarshall(this.xmlFile);
-        this.lines = this.doc.lines;
     }
 
-    public void setXmlFile(InputStream xmlFile) {
-        this.xmlFile = xmlFile;
-
-        this.doc = this.parser.unmarshall(this.xmlFile);
-        this.lines = this.doc.lines;
+    public EscPosDriver(InputStream xmlFile){
+        this.byteData = new ByteArrayOutputStream();
+        this.setTemplate(xmlFile);
     }
 
-    public void setLineText(String lineId, String text) {
+    public void setTemplate(InputStream xmlFile) {
+        this.template = xmlFile;
+        this.doc = this.unmarshallTemplate(this.template);
+    }
+
+    public void setTemplateText(String lineId, String text) {
         int index = 0;
-        for (Line line : this.lines) {
-
-            if (line.getId().equals(lineId)) {
-                line.setText(text);
-                this.lines.set(index, line);
+        for (Line line : this.doc.lines) {
+            if (line.id.equals(lineId)) {
+                line.text = text;
+                this.doc.lines.set(index, line);
             }
             index++;
         }
     }
 
-    public byte[] xmlToEsc() {
-
+    public byte[] getBytes() {
         this.byteData.reset();
-
-        for (Line line : this.lines) {
-            writeLine(line);
+        
+        for (Line line : this.doc.lines) {
+            this.parseLine(line);
         }
 
         byte[] tmp = this.byteData.toByteArray();
@@ -63,153 +61,94 @@ public class EscPosDriver {
         return tmp;
     }
 
-    public byte[] customXmlToEsc(InputStream xmlFile, String lineId, String text) {
-        setLineText(lineId, text);
-
-        for (Line line : this.lines) {
-            writeLine(line);
-        }
-
-        byte[] tmp = this.byteData.toByteArray();
-
-        try {
-            this.byteData.flush();
-        } catch (IOException e) {
+    private Document unmarshallTemplate(InputStream xmlFile) {
+        Serializer serializer = new Persister();
+        try{
+            Document doc = serializer.read(Document.class, xmlFile);
+            return doc;
+        } catch (Exception e){
             e.printStackTrace();
-        }
-
-        return tmp;
-    }
-
-
-    private void writeLine(Line line) {
-        // ESC @
-        byteData.write(0x1B);
-        byteData.write(0x40);
-
-        if (line.getFont() != null) {
-            writeFont(line.getFont());
-        }
-        if (line.getAlign() != null) {
-            writeAlign(line.getAlign());
-        }
-        if (line.getText() != null) {
-            writeText(line.getText());
-
-            // LF
-            //byteData.write(0xA);
-        }
-        if (line.getFeed() != null) {
-            writeFeed(line.getFeed());
-        }
-        if (line.getCut() != null) {
-            writeCut(line.getCut());
+            return null;
         }
     }
 
-    private void writeText(String text) {
+    private void parseLine(Line line) {
+        // initalize printer.
+        this.byteData.write(ESC);
+        this.byteData.write(AT);
+
+        if (this.doc.codePage != null) {
+            this.parseCodePage(this.doc.codePage);
+        }
+        
+        if (line.font != null) {
+            parseFont(line.font);
+        }
+
+        if (line.alignment != null) {
+            parseAlignment(line.alignment);
+        }
+
+        if (line.text != null) {
+            parseText(line.text);
+        }
+
+        if (line.feed != null) {
+            parseFeed(line.feed);
+        }
+        if (line.cut != null) {
+            parseCut(line.cut);
+        }
+    }
+
+    private void parseText(String text) {
         try {
-            byteData.write(text.getBytes());
-        } catch (IOException e) {
+            this.byteData.write(text.getBytes(this.doc.codePage.toLowerCase()));
+        } catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    private void writeAlign(String align) {
-        System.out.println("ALIGNMENT" + align);
-        int code;
+    private void parseAlignment(String alignment) {
+        // Select justification
+        this.byteData.write(ESC);
+        this.byteData.write(a);
 
-        byteData.write(0x1B);
-        byteData.write(0x61);
-
-        switch (align.toLowerCase()) {
-            case "left":
-                code = 0x00;
-                break;
-            case "center":
-                code = 0x01;
-                break;
-            case "right":
-                code = 0x02;
-                break;
-            default:
-                code = 0x00;
-        }
-
-        byteData.write(code);
+        this.byteData.write(ALIGN_MAP.get(alignment.toLowerCase()));
     }
 
-    private void writeFont(String font) {
-
-        int code;
-
-        byteData.write(0x1B);
-        byteData.write(0x21);
-
-        switch (font.toLowerCase()) {
-            case "regular":
-                code = 0x00;
-                break;
-            case "dh":
-                code = 0x10;
-                break;
-            case "dw":
-                code = 0x20;
-                break;
-            case "dwdh":
-                code = 0x30;
-                break;
-            case "emphasized":
-                code = 0x08;
-                break;
-            case "dh_emphasized":
-                code = 0x18;
-                break;
-            case "dw_emphasized":
-                code = 0x28;
-                break;
-            case "dwdh_emphasized":
-                code = 0x38;
-                break;
-            default:
-                code = 0x00;
-        }
-
-        byteData.write(code);
+    private void parseFont(String font) {
+        // Select print mode(s)
+        this.byteData.write(ESC);
+        this.byteData.write(EXCLAMATION_MARK);
+        System.out.println(PRINT_MODE_MAP);
+        this.byteData.write(PRINT_MODE_MAP.get(font.toLowerCase()));
     }
 
-    private void writeCut(String cut) {
+    private void parseCut(String cut) {
+        // Select cut mode and cut paper
+        this.byteData.write(GS);
+        this.byteData.write(V);
 
-        int code;
-
-        // GS V
-        byteData.write(0x1D);
-        byteData.write(0x56);
-
-        switch (cut.toLowerCase()) {
-            case "full":
-                code = 0x00;
-                break;
-            case "part":
-                code = 0x01;
-                break;
-            default:
-                code = 0x00;
-        }
-
-        // m function
-        byteData.write(code);
+        this.byteData.write(CUT_MODE_MAP.get(cut.toLowerCase()));
     }
 
-    private void writeFeed(Integer feed) {
-
+    private void parseFeed(Integer feed) {
         if (feed >= 0) {
-            // ESC d
-            byteData.write(0x1B);
-            byteData.write(0x64);
+            // Print and feed paper n lines
+            this.byteData.write(ESC);
+            this.byteData.write(d);
 
-            // n lines
-            byteData.write(feed);
+            this.byteData.write(feed);
         }
+    }
+
+    private void parseCodePage(String codePage) {
+
+        // Select character code table
+        this.byteData.write(ESC);
+        this.byteData.write(t);
+
+        this.byteData.write(CHAR_CODE_TABLE_MAP.get(codePage));
     }
 }

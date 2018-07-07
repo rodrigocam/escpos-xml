@@ -10,7 +10,7 @@ plugins {
     id 'java-library'
 }
 
-version = '0.0.5'
+version = '0.0.6'
 
  //create a single Jar with all dependencies
 task fatJar(type: Jar) {
@@ -32,8 +32,9 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
     
-    // https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream
-    compile group: 'com.thoughtworks.xstream', name: 'xstream', version: '1.4.9'
+    // https://mvnrepository.com/artifact/org.simpleframework/simple-xml
+    compile group: 'org.simpleframework', name: 'simple-xml', version: '2.7.1'
+
 }
 
 // In this section you declare where to find the dependencies of your project
