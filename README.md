@@ -2,7 +2,9 @@
 
 ## Usage example:
 
-`<document code-page="CP850">
+
+```xml
+<document code-page="CP850">
     <line id="title" align="center" font="dh_dw_emphasized" cut="part" feed="3">
         <text>Gold Penny</text>
     </line>
@@ -20,4 +22,5 @@
     <line id="info" align="center" font="regular" cut="part" feed="4">
         <text>Testing</text>
     </line>
-</document>`
+</document>
+```
