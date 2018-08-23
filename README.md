@@ -3,6 +3,7 @@
 ## Usage example:
 
 
+### Template
 ```xml
 <document code-page="CP850">
     <line id="title" align="center" font="dh_dw_emphasized" cut="part" feed="3">
@@ -23,4 +24,17 @@
         <text>Testing</text>
     </line>
 </document>
+```
+### Code
+```java
+    /* EscPos driver to parse xml template to esc/pos commands */
+    private EscPosDriver escPosDriver;
+
+    /* XML Template with the print template */
+    private InputStream xmlFile;
+    
+    this.escPosDriver = new EscPosDriver(this.xmlFile);
+    this.escPosDriver.setTemplateText("product", "Beer");
+    
+    sendProductToPrint(this.escPosDriver.getBytes());
 ```
